@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,15 +29,14 @@ namespace SocialNet
         {
             string connection = Configuration.GetConnectionString("DefaultConnection");
 
-            services
-                           .AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connection))
-            .AddIdentity<User, IdentityRole>(opts => {
-                 opts.Password.RequiredLength = 5;
-                 opts.Password.RequireNonAlphanumeric = false;
-                 opts.Password.RequireLowercase = false;
-                 opts.Password.RequireUppercase = false;
-                 opts.Password.RequireDigit = false;
-             })
+            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connection));
+            services.AddIdentity<User, IdentityRole>(opts => {
+                opts.Password.RequiredLength = 5;
+                opts.Password.RequireNonAlphanumeric = false;
+                opts.Password.RequireLowercase = false;
+                opts.Password.RequireUppercase = false;
+                opts.Password.RequireDigit = false;
+            })
                     .AddEntityFrameworkStores<ApplicationDbContext>();
             services.AddControllersWithViews();
         }
@@ -69,14 +69,16 @@ namespace SocialNet
                     pattern: "{controller=Home}/{action=Index}/{id?}");
             });
         }
-
+    }
         public class ApplicationDbContext : IdentityDbContext<User>
         {
+            protected override void OnModelCreating(ModelBuilder builder) { base.OnModelCreating(builder); }
+
             public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
             {
                 Database.EnsureCreated();
             }
         }
-    }
+    
 }
 
